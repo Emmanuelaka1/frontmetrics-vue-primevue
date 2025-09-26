@@ -280,25 +280,131 @@ onMounted(() => {
 </template>
 
 <style scoped>
-:deep(.p-treetable .p-treetable-thead > tr > th) {
-  background: var(--surface-100);
-  border-color: var(--surface-200);
+/* Boutons modernes */
+:deep(.modern-button) {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+  border: 1.5px solid var(--surface-300) !important;
 }
 
-:deep(.p-treetable .p-treetable-tbody > tr) {
-  border-color: var(--surface-200);
+:deep(.modern-button:hover) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
-:deep(.p-treetable .p-treetable-tbody > tr:hover) {
-  background: var(--surface-50);
+:deep(.modern-button.primary) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #10b981 !important;
+  color: white !important;
 }
 
-:deep(.p-tag) {
-  font-size: 0.75rem;
+/* TreeTable moderne */
+:deep(.modern-treetable) {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-:deep(.p-badge) {
-  font-size: 0.7rem;
-  min-width: 1.5rem;
+:deep(.modern-treetable .p-treetable-thead > tr > th) {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-color: var(--border-color) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  color: var(--text-color) !important;
+  padding: 1rem !important;
+  letter-spacing: -0.01em !important;
 }
+
+:deep(.modern-treetable .p-treetable-tbody > tr) {
+  border-color: var(--surface-200) !important;
+  transition: all 0.2s ease !important;
+}
+
+:deep(.modern-treetable .p-treetable-tbody > tr:hover) {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+:deep(.modern-treetable .p-treetable-tbody > tr > td) {
+  padding: 0.875rem 1rem !important;
+  vertical-align: middle !important;
+  border-color: var(--surface-200) !important;
+}
+
+:deep(.modern-treetable .p-treetable-toggler) {
+  color: var(--primary-color) !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+:deep(.modern-treetable .p-treetable-toggler:hover) {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Badges modernes */
+:deep(.modern-badge) {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 6px !important;
+  min-width: 1.5rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Tags modernes */
+:deep(.modern-tag) {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 6px !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Messages modernes */
+:deep(.modern-message) {
+  border-radius: 10px !important;
+  border: 1px solid var(--border-color) !important;
+  font-weight: 500 !important;
+}
+
+/* Boutons d'actions */
+:deep(.action-button) {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  border-color: var(--surface-300) !important;
+}
+
+:deep(.action-button:hover) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Skeleton amélioré */
+:deep(.p-skeleton) {
+  background: linear-gradient(90deg, var(--surface-200) 25%, var(--surface-100) 50%, var(--surface-200) 75%) !important;
+  background-size: 200% 100% !important;
+  animation: loading 1.5s infinite !important;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Variables CSS pour la cohérence */
+.text-color { color: var(--text-color); }
+.text-color-secondary { color: var(--text-color-secondary); }
 </style>

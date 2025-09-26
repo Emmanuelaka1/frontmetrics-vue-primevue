@@ -65,24 +65,174 @@ const cardSize = computed(() => {
 </script>
 
 <template>
-  <Card :class="['shadow-2 surface-card border-round-2xl h-full', cardSize]">
+  <Card :class="['modern-metric-card', cardSize]">
     <template #title>
-      <div class="flex align-items-center gap-2">
-        <i :class="[metricIcon, 'text-primary']"></i>
-        <span class="font-medium">{{ name }}</span>
+      <div class="metric-header">
+        <div class="metric-icon-container">
+          <i :class="[metricIcon, 'metric-icon']"></i>
+        </div>
+        <div class="metric-title-section">
+          <span class="metric-name">{{ name }}</span>
+        </div>
         <Tag 
-          :severity="tagSeverity" 
           :value="type ?? 'N/A'" 
-          class="ml-auto"
-          size="small"
+          :severity="tagSeverity" 
+          class="metric-tag"
         />
       </div>
     </template>
     <template #content>
-      <div :class="size === 'small' ? 'text-2xl font-bold' : 'text-3xl font-bold'">
-        {{ displayValue }}
+      <div class="metric-content">
+        <div :class="['metric-value', size === 'small' ? 'value-small' : 'value-large']">
+          {{ displayValue }}
+        </div>
+        <div class="metric-variant">{{ variant?.replace('_', ' ') ?? 'DEFAULT' }}</div>
       </div>
-      <small class="text-500">{{ variant?.replace('_', ' ') ?? 'DEFAULT' }}</small>
     </template>
   </Card>
 </template>
+
+<style scoped>
+.modern-metric-card {
+  height: 100%;
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%) !important;
+}
+
+.modern-metric-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.p-2 {
+  padding: 1rem !important;
+}
+
+.p-3 {
+  padding: 1.5rem !important;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.metric-icon-container {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+.metric-icon {
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.metric-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-name {
+  font-weight: 600;
+  font-size: 0.925rem;
+  color: #1e293b;
+  line-height: 1.4;
+  display: block;
+}
+
+.metric-tag {
+  flex-shrink: 0;
+}
+
+:deep(.metric-tag) {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.metric-content {
+  padding-top: 0.5rem;
+}
+
+.value-large {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  color: #0f172a !important;
+  margin-bottom: 0.75rem !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.025em !important;
+}
+
+.value-small {
+  font-size: 1.875rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: #0f172a !important;
+  margin-bottom: 0.5rem !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.025em !important;
+}
+
+.metric-variant {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Override PrimeVue Card styles */
+:deep(.p-card .p-card-title) {
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.p-card .p-card-content) {
+  padding: 0 !important;
+}
+
+:deep(.p-card .p-card-body) {
+  padding: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .metric-header {
+    gap: 0.75rem;
+  }
+  
+  .metric-icon-container {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .metric-icon {
+    font-size: 0.875rem;
+  }
+  
+  .value-large {
+    font-size: 1.875rem !important;
+  }
+  
+  .value-small {
+    font-size: 1.5rem !important;
+  }
+}
+</style>
