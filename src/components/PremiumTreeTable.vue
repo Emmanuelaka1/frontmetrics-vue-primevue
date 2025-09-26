@@ -391,36 +391,57 @@ onMounted(() => {
 }
 
 :deep(.premium-treetable .p-treetable-thead > tr > th) {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  background: #cecece  !important;
   border: none !important;
   border-bottom: 1px solid #e2e8f0 !important;
   font-weight: 600 !important;
   font-size: 0.875rem !important;
   color: #475569 !important;
-  padding: 1.25rem 1.5rem !important;
+  padding: 1.05rem 1.2rem !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
 }
 
 :deep(.premium-treetable .p-treetable-tbody > tr) {
-  border-bottom: 1px solid #f1f5f9 !important;
   transition: all 0.3s ease !important;
+  border-collapse: separate !important;
 }
 
 :deep(.premium-treetable .p-treetable-tbody > tr:hover) {
-  background: linear-gradient(135deg, #f8fafc 0%, #fafbfc 100%) !important;
+  background: #93bbe3  !important;
   transform: scale(1.005) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
 }
 
 :deep(.premium-treetable .p-treetable-tbody > tr > td) {
   padding: 1rem 1.5rem !important;
-  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
   vertical-align: middle !important;
+  position: relative !important;
+}
+
+/* Bordures alternatives avec pseudo-éléments */
+:deep(.premium-treetable .p-treetable-tbody > tr > td:first-child::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+}
+
+:deep(.premium-treetable .p-treetable-tbody > tr > td:first-child::after) {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
 }
 
 :deep(.premium-treetable .p-treetable-toggler) {
-  color: #10b981 !important;
+  color: #3b82f6 !important;
   width: 2rem !important;
   height: 2rem !important;
   border-radius: 8px !important;
@@ -429,7 +450,7 @@ onMounted(() => {
 }
 
 :deep(.premium-treetable .p-treetable-toggler:hover) {
-  background: #10b981 !important;
+  background: #3b82f6 !important;
   color: white !important;
   transform: scale(1.1) !important;
 }
