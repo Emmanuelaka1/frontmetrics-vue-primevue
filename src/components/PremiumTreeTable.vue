@@ -414,7 +414,7 @@ onMounted(() => {
 }
 
 :deep(.premium-treetable .p-treetable-tbody > tr > td) {
-  padding: 1rem 1.5rem !important;
+  padding: 0.5rem 2rem 0.5rem 1.5rem !important;
   border-left: none !important;
   border-right: none !important;
   vertical-align: middle !important;
