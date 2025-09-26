@@ -11,6 +11,8 @@ import InputText from 'primevue/inputtext'
 import MultiSelect from 'primevue/multiselect'
 import Toolbar from 'primevue/toolbar'
 import { fetchAllMetrics, type RawMetric } from '../api'
+import { MetricsUtils } from '../utils/MetricsUtils'
+import '../styles/PremiumTreeTable.css'
 
 interface TreeNode {
   key: string
@@ -172,78 +174,6 @@ const formatValue = (value: any): string => {
   return String(value)
 }
 
-const getBadgeSeverity = (type?: string) => {
-  const typeStr = type?.toLowerCase() || ''
-  
-  if (typeStr.includes('error')) return 'danger'
-  if (typeStr.includes('delete')) return 'warning'
-  if (typeStr.includes('fast') || typeStr.includes('performance')) return 'success'
-  return 'info'
-}
-
-const getMetricConfig = (name?: string) => {
-  const nameStr = name?.toLowerCase().trim() || ''
-  
-  // Configuration pour Number (strict match)
-  if (nameStr === 'number') {
-    return { icon: 'pi pi-hashtag', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', shadow: 'rgba(59, 130, 246, 0.25)' }
-  }
-  
-  // Configuration pour Average
-  if (nameStr === 'average' || nameStr === 'avg') {
-    return { icon: 'pi pi-chart-line', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', shadow: 'rgba(16, 185, 129, 0.25)' }
-  }
-  
-  // Configuration pour Max
-  if (nameStr === 'max' || nameStr === 'maximum') {
-    return { icon: 'pi pi-arrow-up', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', shadow: 'rgba(239, 68, 68, 0.25)' }
-  }
-  
-  // Configuration pour Min
-  if (nameStr === 'min' || nameStr === 'minimum') {
-    return { icon: 'pi pi-arrow-down', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', shadow: 'rgba(245, 158, 11, 0.25)' }
-  }
-  
-  // Configuration pour Count
-  if (nameStr === 'count' || nameStr === 'counter') {
-    return { icon: 'pi pi-calculator', background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', shadow: 'rgba(139, 92, 246, 0.25)' }
-  }
-  
-  // Configuration pour Sum
-  if (nameStr === 'sum' || nameStr === 'total') {
-    return { icon: 'pi pi-plus-circle', background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', shadow: 'rgba(6, 182, 212, 0.25)' }
-  }
-  
-  // Configuration pour Rate
-  if (nameStr === 'rate' || nameStr === 'ratio') {
-    return { icon: 'pi pi-percentage', background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', shadow: 'rgba(236, 72, 153, 0.25)' }
-  }
-  
-  // Configuration pour Time
-  if (nameStr === 'time' || nameStr === 'duration') {
-    return { icon: 'pi pi-clock', background: 'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)', shadow: 'rgba(132, 204, 22, 0.25)' }
-  }
-  
-  // Configuration pour Size/Memory
-  if (nameStr === 'size' || nameStr === 'bytes' || nameStr === 'memory') {
-    return { icon: 'pi pi-database', background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', shadow: 'rgba(249, 115, 22, 0.25)' }
-  }
-  
-  // Configuration pour Error
-  if (nameStr === 'error' || nameStr === 'exception') {
-    return { icon: 'pi pi-exclamation-triangle', background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)', shadow: 'rgba(220, 38, 38, 0.25)' }
-  }
-  
-  // Type par défaut
-  return { icon: 'pi pi-chart-bar', background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', shadow: 'rgba(100, 116, 139, 0.25)' }
-}
-
-const getServiceBadgeSeverity = (serviceName: string) => {
-  if (serviceName.includes('PERFORMANCE')) return 'success'
-  if (serviceName.includes('DELETE')) return 'warning'
-  return 'info'
-}
-
 const refresh = () => {
   loadMetricsTree()
 }
@@ -334,24 +264,16 @@ onMounted(() => {
         <div class="header-icon">
           <i class="pi pi-sitemap"></i>
         </div>
-        <h2 class="header-title">Vue Arborescence des Métriques</h2>
+        <h2 class="header-title">Métriques</h2>
       </div>
       
       <div class="header-actions">
-        <Button
-          icon="pi pi-plus-circle"
-          label="Tout Déplier"
-          @click="toggleAll"
-          class="premium-btn secondary"
-          size="small"
-        />
         <Button
           icon="pi pi-refresh"
           label="Actualiser"
           @click="refresh"
           :loading="loading"
           class="premium-btn primary"
-          size="small"
         />
       </div>
     </div>
@@ -405,22 +327,20 @@ onMounted(() => {
             icon="pi pi-filter-slash"
             label="Effacer"
             @click="clearFilters"
-            class="premium-btn secondary"
-            size="small"
+            severity="contrast"
           />
           <Button 
             icon="pi pi-download"
             label="Export CSV"
             @click="exportData"
-            class="premium-btn secondary"
-            size="small"
+            severity="success"
+
           />
           <Button 
             :icon="Object.keys(expandedKeys).length > 0 ? 'pi pi-minus-circle' : 'pi pi-plus-circle'"
             label="Tout Déplier"
             @click="toggleAll"
-            class="premium-btn secondary"
-            size="small"
+            :severity="Object.keys(expandedKeys).length > 0 ? 'danger' : 'info'"
           />
         </div>
       </template>
@@ -447,7 +367,7 @@ onMounted(() => {
         stripedRows
         responsiveLayout="scroll"
       >
-        <Column field="name" header="Nom" expander :style="{ width: '40%', minWidth: '320px' }">
+        <Column field="name" header="Libelle" expander :style="{ width: '40%', minWidth: '320px' }">
           <template #body="{ node }">
             <div class="name-cell">
               <!-- Icônes avec design premium -->
@@ -455,7 +375,7 @@ onMounted(() => {
                 class="node-icon" 
                 :class="`icon-${node.data.level}`"
                 :style="node.data.level === 'metric' ? 
-                  `background: ${getMetricConfig(node.data.name).background}; box-shadow: 0 4px 12px ${getMetricConfig(node.data.name).shadow};` : 
+                  `background: ${MetricsUtils.getMetricConfig(node.data.name).background}; box-shadow: 0 4px 12px ${MetricsUtils.getMetricConfig(node.data.name).shadow};` : 
                   ''"
               >
                 <i 
@@ -468,19 +388,13 @@ onMounted(() => {
                 ></i>
                 <i 
                   v-else 
-                  :class="getMetricConfig(node.data.name).icon"
+                  :class="MetricsUtils.getMetricConfig(node.data.name).icon"
                 ></i>
               </div>
               
               <span class="node-name">{{ node.data.name }}</span>
               
-              <!-- Badge premium -->
-              <Badge 
-                v-if="node.data.count" 
-                :value="node.data.count" 
-                :severity="node.data.level === 'service' ? getServiceBadgeSeverity(node.data.serviceName!) : 'info'"
-                class="premium-badge"
-              />
+            
             </div>
           </template>
         </Column>
@@ -489,7 +403,7 @@ onMounted(() => {
           <template #body="{ node }">
             <div class="value-cell">
               <span v-if="node.data.value !== undefined" class="metric-value">
-                {{ formatValue(node.data.value) }}
+                {{ formatValue(node.data.value)}}
               </span>
               <span v-else class="no-value">—</span>
             </div>
@@ -502,35 +416,12 @@ onMounted(() => {
               <Tag 
                 v-if="node.data.type" 
                 :value="node.data.type" 
-                :severity="getBadgeSeverity(node.data.type)"
+                :severity="MetricsUtils.getBadgeSeverity(node.data.type)"
                 class="premium-tag"
               />
               <span v-else-if="node.data.level === 'service'" class="level-label">Service</span>
               <span v-else-if="node.data.level === 'type'" class="level-label">Groupe</span>
               <span v-else class="no-value">—</span>
-            </div>
-          </template>
-        </Column>
-
-        <Column header="Actions" :style="{ width: '15%', textAlign: 'center' }">
-          <template #body="{ node }">
-            <div class="actions-cell">
-              <Button 
-                v-if="node.data.level === 'metric'"
-                icon="pi pi-chart-bar" 
-                severity="secondary" 
-                size="small"
-                class="premium-action-btn"
-                v-tooltip.top="'Voir le graphique'"
-              />
-              <Button 
-                v-if="node.data.level === 'service'"
-                icon="pi pi-cog" 
-                severity="secondary" 
-                size="small"
-                class="premium-action-btn"
-                v-tooltip.top="'Configuration'"
-              />
             </div>
           </template>
         </Column>
@@ -558,396 +449,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Container principal */
-.premium-container {
-  padding: 2rem;
-  background: linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%);
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Header premium */
-.premium-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-icon {
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
-}
-
-.header-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e293b;
-  letter-spacing: -0.025em;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-/* Toolbar premium */
-:deep(.premium-toolbar) {
-  background: white !important;
-  border-radius: 12px !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
-  padding: 1rem 1.5rem !important;
-}
-
-:deep(.premium-input) {
-  border-radius: 8px !important;
-  border: 1.5px solid #e2e8f0 !important;
-  padding: 0.6rem 1rem !important;
-  width: 200px !important;
-  font-size: 0.875rem !important;
-  transition: all 0.3s ease !important;
-}
-
-:deep(.premium-input:focus) {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
-}
-
-:deep(.premium-multiselect) {
-  min-width: 180px !important;
-  border-radius: 8px !important;
-  border: 1.5px solid #e2e8f0 !important;
-  font-size: 0.875rem !important;
-  transition: all 0.3s ease !important;
-}
-
-:deep(.premium-multiselect:focus) {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
-}
-
-/* Boutons premium */
-:deep(.premium-btn) {
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-  padding: 0.75rem 1.25rem !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-}
-
-:deep(.premium-btn.primary) {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  color: white !important;
-}
-
-:deep(.premium-btn.primary:hover) {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35) !important;
-}
-
-:deep(.premium-btn.secondary) {
-  background: white !important;
-  color: #64748b !important;
-  border: 1.5px solid #e2e8f0 !important;
-}
-
-:deep(.premium-btn.secondary:hover) {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Container du tableau */
-.table-container {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-}
-
-/* TreeTable premium */
-:deep(.premium-treetable) {
-  border: none !important;
-}
-
-:deep(.premium-treetable .p-treetable-thead > tr > th) {
-  background: #cecece  !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-  color: #475569 !important;
-  padding: 1.05rem 1.2rem !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-}
-
-:deep(.premium-treetable .p-treetable-tbody > tr) {
-  transition: all 0.3s ease !important;
-  border-collapse: separate !important;
-}
-
-:deep(.premium-treetable .p-treetable-tbody > tr:hover) {
-  background: #93bbe3  !important;
-  transform: scale(1.005) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
-}
-
-:deep(.premium-treetable .p-treetable-tbody > tr > td) {
-  padding: 0.5rem 2rem 0.5rem 1.5rem !important;
-  border-left: none !important;
-  border-right: none !important;
-  vertical-align: middle !important;
-  position: relative !important;
-}
-
-/* Bordures alternatives avec pseudo-éléments */
-:deep(.premium-treetable .p-treetable-tbody > tr > td:first-child::before) {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-}
-
-:deep(.premium-treetable .p-treetable-tbody > tr > td:first-child::after) {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-}
-
-:deep(.premium-treetable .p-treetable-toggler) {
-  color: #3b82f6 !important;
-  width: 2rem !important;
-  height: 2rem !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
-  margin-right: 0.5rem !important;
-}
-
-:deep(.premium-treetable .p-treetable-toggler:hover) {
-  background: #3b82f6 !important;
-  color: white !important;
-  transform: scale(1.1) !important;
-}
-
-/* Cellules personnalisées */
-.name-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-}
-
-.node-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  color: white;
-  font-weight: 500;
-}
-
-.icon-service {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-}
-
-.icon-type {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-}
-
-.icon-metric {
-  /* Les styles dynamiques sont appliqués via :style dans le template */
-  /* Fallback si aucun type n'est défini */
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);
-}
-
-.node-name {
-  font-weight: 600;
-  font-size: 0.925rem;
-  color: #1e293b;
-}
-
-.value-cell {
-  text-align: right;
-}
-
-.metric-value {
-  font-weight: 700;
-  font-size: 0.925rem;
-  color: #0f172a;
-  font-variant-numeric: tabular-nums;
-}
-
-.no-value, .level-label {
-  color: #94a3b8;
-  font-size: 0.875rem;
-  font-style: italic;
-}
-
-.type-cell, .actions-cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Badges et tags premium */
-:deep(.premium-badge) {
-  font-size: 0.75rem !important;
-  font-weight: 700 !important;
-  padding: 0.375rem 0.75rem !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  letter-spacing: 0.025em !important;
-}
-
-:deep(.premium-tag) {
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  padding: 0.4rem 0.875rem !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  letter-spacing: 0.01em !important;
-}
-
-/* Boutons d'actions premium */
-:deep(.premium-action-btn) {
-  width: 2.25rem !important;
-  height: 2.25rem !important;
-  border-radius: 8px !important;
-  transition: all 0.3s ease !important;
-  border: 1.5px solid #e2e8f0 !important;
-  background: white !important;
-}
-
-:deep(.premium-action-btn:hover) {
-  transform: translateY(-2px) scale(1.05) !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-  background: #10b981 !important;
-  border-color: #10b981 !important;
-  color: white !important;
-}
-
-/* Loading state */
-.loading-container {
-  padding: 2rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-}
-
-.loading-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-:deep(.premium-skeleton) {
-  border-radius: 8px !important;
-}
-
-.table-skeleton {
-  border-radius: 12px !important;
-}
-
-/* Empty state */
-.empty-state {
-  padding: 4rem 2rem;
-  text-align: center;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-}
-
-.empty-content {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  color: #cbd5e1;
-  margin-bottom: 1.5rem;
-}
-
-.empty-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 0.75rem 0;
-}
-
-.empty-desc {
-  color: #64748b;
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-/* Message premium */
-:deep(.premium-message) {
-  border-radius: 12px !important;
-  border: 1px solid #fed7d7 !important;
-  font-weight: 500 !important;
-  margin-bottom: 2rem !important;
-}
-
-.error-msg {
-  background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%) !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .premium-container {
-    padding: 1rem;
-  }
-  
-  .premium-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .header-title {
-    font-size: 1.5rem;
-  }
-}
-</style>
