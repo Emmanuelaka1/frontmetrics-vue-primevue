@@ -7,6 +7,9 @@ import Tag from 'primevue/tag'
 import Button from 'primevue/button'
 import Skeleton from 'primevue/skeleton'
 import Message from 'primevue/message'
+import InputText from 'primevue/inputtext'
+import MultiSelect from 'primevue/multiselect'
+import Toolbar from 'primevue/toolbar'
 import { fetchAllMetrics, type RawMetric } from '../api'
 
 interface TreeNode {
@@ -18,6 +21,7 @@ interface TreeNode {
     count?: number
     serviceName?: string
     level: 'service' | 'type' | 'metric'
+    severity?: 'success' | 'info' | 'warning' | 'danger'
   }
   children?: TreeNode[]
 }
@@ -25,15 +29,72 @@ interface TreeNode {
 const loading = ref(true)
 const error = ref<string | null>(null)
 const expandedKeys = ref<Record<string, boolean>>({})
+const globalFilter = ref('')
+const selectedServices = ref<string[]>([])
+const selectedTypes = ref<string[]>([])
+
+const rawData = ref<{ typeCarte: string; metrics: RawMetric[] }[]>([])
 const treeData = ref<TreeNode[]>([])
+
+// Options pour les filtres
+const serviceOptions = computed(() => 
+  [...new Set(rawData.value.map(s => s.typeCarte))].map(service => ({
+    label: service.replace('_', ' '),
+    value: service
+  }))
+)
+
+const typeOptions = computed(() => {
+  const types = new Set<string>()
+  rawData.value.forEach(service => {
+    service.metrics.forEach(metric => {
+      if (metric.type) types.add(metric.type)
+    })
+  })
+  return Array.from(types).map(type => ({
+    label: type,
+    value: type
+  }))
+})
+
+// Données filtrées
+const filteredTreeData = computed(() => {
+  let filtered = [...treeData.value]
+
+  // Filtre par services sélectionnés
+  if (selectedServices.value.length > 0) {
+    filtered = filtered.filter(node => 
+      selectedServices.value.includes(node.data.serviceName!)
+    )
+  }
+
+  // Filtre par types sélectionnés
+  if (selectedTypes.value.length > 0) {
+    filtered = filtered.map(serviceNode => ({
+      ...serviceNode,
+      children: serviceNode.children?.filter(typeNode => 
+        typeNode.children?.some(metricNode => 
+          selectedTypes.value.includes(metricNode.data.type!)
+        )
+      ).map(typeNode => ({
+        ...typeNode,
+        children: typeNode.children?.filter(metricNode => 
+          selectedTypes.value.includes(metricNode.data.type!)
+        )
+      }))
+    })).filter(node => node.children && node.children.length > 0)
+  }
+
+  return filtered
+})
 
 const loadMetricsTree = async () => {
   loading.value = true
   error.value = null
   
   try {
-    const allMetrics = await fetchAllMetrics()
-    treeData.value = buildTreeStructure(allMetrics)
+    rawData.value = await fetchAllMetrics()
+    treeData.value = buildTreeStructure(rawData.value)
     
     // Expand all by default
     const keys: Record<string, boolean> = {}
@@ -193,9 +254,71 @@ const toggleAll = () => {
     expandedKeys.value = {}
   } else {
     const keys: Record<string, boolean> = {}
-    expandAllNodes(treeData.value, keys)
+    expandAllNodes(filteredTreeData.value, keys)
     expandedKeys.value = keys
   }
+}
+
+const clearFilters = () => {
+  selectedServices.value = []
+  selectedTypes.value = []
+  globalFilter.value = ''
+}
+
+const exportData = () => {
+  const data = flattenTreeData(filteredTreeData.value)
+  const csv = convertToCSV(data)
+  downloadCSV(csv, 'metrics-export.csv')
+}
+
+const flattenTreeData = (nodes: TreeNode[]): any[] => {
+  const result: any[] = []
+  
+  const traverse = (node: TreeNode, level: number = 0) => {
+    result.push({
+      niveau: level,
+      service: node.data.serviceName,
+      nom: node.data.name,
+      valeur: node.data.value || '',
+      type: node.data.type || '',
+      categorie: node.data.level
+    })
+    
+    if (node.children) {
+      node.children.forEach(child => traverse(child, level + 1))
+    }
+  }
+  
+  nodes.forEach(node => traverse(node))
+  return result
+}
+
+const convertToCSV = (data: any[]): string => {
+  if (data.length === 0) return ''
+  
+  const headers = Object.keys(data[0])
+  const csvHeaders = headers.join(',')
+  
+  const csvRows = data.map(row => 
+    headers.map(header => {
+      const value = row[header]
+      return typeof value === 'string' && value.includes(',') ? `"${value}"` : value
+    }).join(',')
+  )
+  
+  return [csvHeaders, ...csvRows].join('\n')
+}
+
+const downloadCSV = (csv: string, filename: string) => {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 onMounted(() => {
@@ -238,6 +361,71 @@ onMounted(() => {
       {{ error }}
     </Message>
 
+    <!-- Toolbar avec filtres premium -->
+    <Toolbar class="premium-toolbar mb-4">
+      <template #start>
+        <div class="flex align-items-center gap-2">
+          <i class="pi pi-search text-primary"></i>
+          <InputText 
+            v-model="globalFilter" 
+            placeholder="Recherche globale..." 
+            size="small"
+            class="premium-input"
+          />
+        </div>
+      </template>
+
+      <template #center>
+        <div class="flex align-items-center gap-3">
+          <MultiSelect 
+            v-model="selectedServices"
+            :options="serviceOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Filtrer par services"
+            size="small"
+            class="premium-multiselect"
+          />
+          
+          <MultiSelect 
+            v-model="selectedTypes"
+            :options="typeOptions"
+            option-label="label" 
+            option-value="value"
+            placeholder="Filtrer par types"
+            size="small"
+            class="premium-multiselect"
+          />
+        </div>
+      </template>
+
+      <template #end>
+        <div class="flex gap-2">
+          <Button 
+            icon="pi pi-filter-slash"
+            label="Effacer"
+            @click="clearFilters"
+            class="premium-btn secondary"
+            size="small"
+          />
+          <Button 
+            icon="pi pi-download"
+            label="Export CSV"
+            @click="exportData"
+            class="premium-btn secondary"
+            size="small"
+          />
+          <Button 
+            :icon="Object.keys(expandedKeys).length > 0 ? 'pi pi-minus-circle' : 'pi pi-plus-circle'"
+            label="Tout Déplier"
+            @click="toggleAll"
+            class="premium-btn secondary"
+            size="small"
+          />
+        </div>
+      </template>
+    </Toolbar>
+
     <!-- Loading state -->
     <div v-if="loading" class="loading-container">
       <div class="loading-header">
@@ -250,8 +438,9 @@ onMounted(() => {
     <!-- TreeTable Premium -->
     <div v-else class="table-container">
       <TreeTable 
-        :value="treeData"
+        :value="filteredTreeData"
         v-model:expandedKeys="expandedKeys"
+        :globalFilter="globalFilter"
         class="premium-treetable"
         :loading="loading"
         showGridlines
@@ -357,6 +546,16 @@ onMounted(() => {
         <Button label="Réessayer" @click="refresh" class="premium-btn primary" />
       </div>
     </div>
+
+    <!-- No results after filtering -->
+    <div v-if="!loading && treeData.length > 0 && filteredTreeData.length === 0" class="empty-state">
+      <div class="empty-content">
+        <i class="pi pi-filter empty-icon"></i>
+        <h3 class="empty-title">Aucun résultat</h3>
+        <p class="empty-desc">Aucune donnée ne correspond aux filtres appliqués.</p>
+        <Button label="Effacer les filtres" @click="clearFilters" class="premium-btn secondary" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -412,6 +611,42 @@ onMounted(() => {
 .header-actions {
   display: flex;
   gap: 0.75rem;
+}
+
+/* Toolbar premium */
+:deep(.premium-toolbar) {
+  background: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  padding: 1rem 1.5rem !important;
+}
+
+:deep(.premium-input) {
+  border-radius: 8px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  padding: 0.6rem 1rem !important;
+  width: 200px !important;
+  font-size: 0.875rem !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.premium-input:focus) {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+:deep(.premium-multiselect) {
+  min-width: 180px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  font-size: 0.875rem !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.premium-multiselect:focus) {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
 }
 
 /* Boutons premium */
