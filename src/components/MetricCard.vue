@@ -65,7 +65,10 @@ const cardSize = computed(() => {
 </script>
 
 <template>
-  <Card :class="['modern-metric-card', cardSize]">
+  <Card 
+    :class="['modern-metric-card', size === 'small' ? 'p-2' : 'p-2']"
+    :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }"
+  >
     <template #title>
       <div class="metric-header">
         <div class="metric-icon-container">
@@ -109,11 +112,11 @@ const cardSize = computed(() => {
 }
 
 .p-2 {
-  padding: 1rem !important;
+  padding: 0.75rem !important;
 }
 
 .p-3 {
-  padding: 1.5rem !important;
+  padding: 1rem !important;
 }
 
 .metric-header {
@@ -148,9 +151,9 @@ const cardSize = computed(() => {
 
 .metric-name {
   font-weight: 600;
-  font-size: 0.925rem;
+  font-size: 0.8rem;
   color: #1e293b;
-  line-height: 1.4;
+  line-height: 1.2;
   display: block;
 }
 
@@ -159,42 +162,46 @@ const cardSize = computed(() => {
 }
 
 :deep(.metric-tag) {
-  font-size: 0.75rem !important;
+  font-size: 0.65rem !important;
   font-weight: 600 !important;
-  padding: 0.375rem 0.75rem !important;
-  border-radius: 8px !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 6px !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
 .metric-content {
   padding-top: 0.5rem;
+  text-align: center;
 }
 
 .value-large {
-  font-size: 2.25rem !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  color: #0f172a !important;
-  margin-bottom: 0.75rem !important;
-  font-variant-numeric: tabular-nums !important;
-  letter-spacing: -0.025em !important;
-}
-
-.value-small {
-  font-size: 1.875rem !important;
+  font-size: 2.5rem !important;
   font-weight: 700 !important;
   line-height: 1 !important;
   color: #0f172a !important;
   margin-bottom: 0.5rem !important;
   font-variant-numeric: tabular-nums !important;
   letter-spacing: -0.025em !important;
+  text-align: center !important;
+}
+
+.value-small {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: #0f172a !important;
+  margin-bottom: 0.375rem !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.025em !important;
+  text-align: center !important;
 }
 
 .metric-variant {
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   color: #64748b;
   font-weight: 500;
   text-transform: uppercase;
+  text-align: center;
   letter-spacing: 0.05em;
 }
 
