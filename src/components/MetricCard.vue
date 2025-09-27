@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
+import { MetricsUtils } from '../utils/MetricsUtils'
 
 type Props = {
   name: string
@@ -45,18 +46,8 @@ const tagSeverity = computed(() => {
   return 'secondary'
 })
 
-const metricIcon = computed(() => {
-  const name = props.name.toLowerCase()
-  const type = props.type?.toLowerCase() || ''
-  
-  if (name.includes('number') || name.includes('count')) return 'pi pi-hashtag'
-  if (name.includes('average') || name.includes('avg')) return 'pi pi-chart-line'
-  if (name.includes('max') || name.includes('maximum')) return 'pi pi-arrow-up'
-  if (name.includes('min') || name.includes('minimum')) return 'pi pi-arrow-down'
-  if (type.includes('error')) return 'pi pi-exclamation-triangle'
-  if (type.includes('delete')) return 'pi pi-trash'
-  if (type.includes('performance') || type.includes('fast')) return 'pi pi-bolt'
-  return 'pi pi-chart-bar'
+const metricConfig = computed(() => {
+  return MetricsUtils.getMetricConfig(props.name)
 })
 
 const cardSize = computed(() => {
@@ -71,8 +62,8 @@ const cardSize = computed(() => {
   >
     <template #title>
       <div class="metric-header">
-        <div class="metric-icon-container">
-          <i :class="[metricIcon, 'metric-icon']"></i>
+        <div class="metric-icon-container" :style="`background: ${metricConfig.background}; box-shadow: 0 4px 12px ${metricConfig.shadow};`">
+          <i :class="[metricConfig.icon, 'metric-icon']"></i>
         </div>
         <div class="metric-title-section">
           <span class="metric-name">{{ name }}</span>
@@ -133,8 +124,6 @@ const cardSize = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
   flex-shrink: 0;
 }
 
